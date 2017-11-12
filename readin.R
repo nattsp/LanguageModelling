@@ -13,13 +13,12 @@ close(con)
 head(data_blogs)
 length(data_blogs)
 
-
+## Convert to Corpus
 blogsCorpus <- corpus(data_blogs)
 rm(data_blogs)
 
 summary(blogsCorpus)
 
-#corpus_sample()
 
 splitSet602020 <- function(n){
     set.seed(20171112)
@@ -34,7 +33,18 @@ blogsTrain <- corpus_subset(blogsCorpus, subset = (ss==1))
 blogsHoldOut <- corpus_subset(blogsCorpus, subset = (ss == 2))
 blogsTest <- corpus_subset(blogsCorpus, subset = (ss==3))
 
-
 ndoc(blogsTrain)
 ndoc(blogsHoldOut)
 ndoc(blogsTest)
+
+writeLines(as.character(mycorpus), con="mycorpus.txt")
+write_lines(as.character(blogsTest), path = "..\\..\\Data\\blogsTest.txt")
+
+
+blogsSentences <- corpus_reshape(blogsTrain, to = "sentences")
+blogsSentences[[1]]
+View(blogsSentences[c(1:20),])
+summary(blogsSentences)
+head(blogsSentences)
+
+## Next Remove profane words from the corpus
