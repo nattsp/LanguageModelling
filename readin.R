@@ -76,14 +76,90 @@ docvars(newsSentences, "source") <- "news"
 summary(blogsSentences)
 summary(newsSentences)
 
-corpusTrain <- blogsSentences + newsSentences
+#corpusTrain <- blogsSentences + newsSentences
+corpusTrain <- blogsTrain + newsTrain
 summary(corpusTrain)
+texts(corpusTrain)[1:20]
 
 options(width = 200)
 kwic(corpusTrain, "terror")
 
 corpus_reshape(corpusTrain, to = "documents")
 summary(corpusTrain)
+
+
+# Make a document frequency matrix
+
+trainDfm <- dfm(
+    corpusTrain
+    , tolower = TRUE
+    , remove_numbers = TRUE
+    , remove_punct = TRUE
+    , remove = stopwords("english")
+    , verbose = quanteda_options("verbose")
+    )
+trainDfm[1:10, 1:10]
+texts(corpusTrain)[c(1,2)] # compare this to the original text
+
+topfeatures(trainDfm, 100)  # top words
+
+trainDfm <- dfm(
+    trainDfm
+    , remove = "^â.+\\b"
+    , valuetype = c("regex")
+    , verbose = quanteda_options("verbose")
+)
+trainDfm <- removeFeatures(trainDfm)
+trainDfm <- dfm(
+    trainDfm
+    , removeFeatures() = "^[0-9].+\\b"
+    , valuetype = c("regex")
+    , verbose = quanteda_options("verbose")
+)
+
+selectDfm <- dfm(
+    trainDfm
+    , select = "^â.+\\b"
+    , valuetype = c("regex")
+    , verbose = quanteda_options("verbose")
+    )
+
+selectDfm <- dfm(
+    trainDfm
+    , select = "^â€.+\\b"
+    , valuetype = c("regex")
+    , verbose = quanteda_options("verbose")
+)
+
+selectDfm <- dfm(
+    trainDfm
+    , select = "^[0-9].+\\b"
+    , valuetype = c("regex")
+    , verbose = quanteda_options("verbose")
+)
+
+selectDfm <- dfm(
+    trainDfm
+    , select = "^â.*[^a-z].*\\b"
+    , valuetype = c("regex")
+    , verbose = quanteda_options("verbose")
+)
+
+selectDfm
+topfeatures(selectDfm, 500)  # top words
+
+#     , select = "^.*\\W+.*\\b" gave me hyphens - and appostrophies '
+
+#> topfeatures(trainDfm, 20)  # top words
+#      .     the       ,     and      to       a      of      in       "       i    that 
+#2468948 2299848 2245785 1186680 1179957 1065286  989000  761766  678225  559931  484493 
+#     is     for      it      on    with     was      as     you      at 
+# 429477  428879  374540  324807  324495  305079  246482  236450  230309 
+
+
+
+
+
 
 ## Next Remove profane words from the corpus
 
