@@ -14,4 +14,17 @@ myDfm <- dfm(
 myDfm
 topfeatures(myDfm)
 
+dfm_select(
+    myDfm
+    , pattern = "^.*â.*"
+    , selection = c("keep")
+    , valuetype = c("regex")
+)
+dfm_select(
+    myDfm
+    , pattern = "^.*â.*"
+    , selection = c("remove")
+    , valuetype = c("regex")
+)
+
 

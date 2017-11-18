@@ -124,7 +124,13 @@ trainDfm <- dfm_select(
     , valuetype = c("regex")
 )
 
+trainDfm
+topfeatures(trainDfm, 500)  # top words
 
+set.seed(2017)
+textplot_wordcloud(trainDfm, min.freq = 25675, random.order = FALSE,
+                   rot.per = .25, 
+                   colors = RColorBrewer::brewer.pal(8,"Dark2"))
 
 trainDfm <- dfm(
     trainDfm
