@@ -103,6 +103,29 @@ texts(corpusTrain)[c(1,2)] # compare this to the original text
 
 topfeatures(trainDfm, 100)  # top words
 
+trainDfm <- dfm_select(
+    trainDfm
+    , pattern = "^.*â.*"
+    , selection = c("remove")
+    , valuetype = c("regex")
+)
+
+trainDfm <- dfm_select(
+    trainDfm
+    , pattern = "^[0-9].+\\b"
+    , selection = c("remove")
+    , valuetype = c("regex")
+)
+
+trainDfm <- dfm_select(
+    trainDfm
+    , pattern = "^.*[^a-z'.\\-àèìòùáéíóúâêîôûãñõäëïöüåæœçðø¿¡ß].*\\b"
+    , selection = c("remove")
+    , valuetype = c("regex")
+)
+
+
+
 trainDfm <- dfm(
     trainDfm
     , remove = "^â.+\\b"
@@ -115,6 +138,34 @@ trainDfm <- dfm(
     , removeFeatures() = "^[0-9].+\\b"
     , valuetype = c("regex")
     , verbose = quanteda_options("verbose")
+)
+
+## quick selection or removal
+selectDfm <- dfm_select(
+    trainDfm
+    , pattern = "^.*â.*"
+    , selection = c("keep")
+    , valuetype = c("regex")
+)
+
+selectDfm <- dfm_select(
+    trainDfm
+    , pattern = "^[0-9].+\\b"
+    , selection = c("keep")
+    , valuetype = c("regex")
+)
+
+selectDfm <- dfm_select(
+    trainDfm
+    , pattern = "^.*[^a-z'.\\-àèìòùáéíóúâêîôûãñõäëïöüåæœçðø¿¡ß].*\\b"
+    , selection = c("keep")
+    , valuetype = c("regex")
+)
+selectDfm <- dfm_select(
+    selectDfm
+    , pattern = "^.*['//-].*\\b"
+    , selection = c("remove")
+    , valuetype = c("regex")
 )
 
 selectDfm <- dfm(
