@@ -4,6 +4,7 @@ library(quanteda)
 library(tidytext)
 library(stringr)
 library(dplyr)
+library(data.table)
 
 
 con <- file("..\\..\\Data\\Coursera-SwiftKey\\final\\en_US\\en_US.blogs.txt", "rb")
@@ -76,7 +77,7 @@ docvars(newsSentences, "source") <- "news"
 summary(blogsSentences)
 summary(newsSentences)
 
-#corpusTrain <- blogsSentences + newsSentences
+TrainSentences <- blogsSentences + newsSentences
 corpusTrain <- blogsTrain + newsTrain
 summary(corpusTrain)
 texts(corpusTrain)[1:20]
@@ -214,23 +215,33 @@ topfeatures(selectDfm, 500)  # top words
 # 429477  428879  374540  324807  324495  305079  246482  236450  230309 
 
 
+## TF-IDF Term Frequency - Inverse Document Frequency
+train_tfidf <- tfidf(trainDfm, scheme_tf = "prop")
+topfeatures(train_tfidf,100)
+topfeatures(trainDfm,100)
 
+### Ngrams
 
+trigramTrain <- dfm(
+    TrainSentences
+    , tolower = TRUE
+    , remove_numbers = TRUE
+    , remove_punct = TRUE
+    , stem = FALSE
+    , ngrams = 3
+    , verbose = TRUE)
 
+trigramTrain
+topfeatures(trigramTrain, 1000)  # top words
+featnames(trigramTrain)[1:20]
+docfreq(trigramTrain)[1:20]
+summary(trigramTrain)
 
-## Next Remove profane words from the corpus
+trigramDT <- data.table(
+    trigram = featnames(trigramTrain), 
+    docfreq = docfreq(trigramTrain),
+    keep.rownames = F, 
+    stringsAsFactors = F
+                        )
 
-profane <- read_lines("..\\..\\Data\\obsceneEnglish.txt")
-
-(replaceText <- content_transformer(function(x,from)gsub(from, "", x)))
-for(i in 1:length(profane)){
-    blogsSentences <- tm_map(blogsSentences, replaceText, profane[i], "")
-}
-
-blogsSentences <- Corpus(blogsSentences)
-toSpace <- content_transformer(function (x , pattern ) gsub(pattern, " ", x))
-blogsSentences <- tm_map(blogsSentences, toSpace, "ball sack")
-
-testCorpus <- c("In the years thereafter, most of the Oil fields and platforms were named after pagan gods.", "We love you Mr. Brown.", "Chad has been awesome with the kids and holding down the fort while I work later than usual! The kids have been busy together playing Skylander on the XBox together, after Kyan cashed in his $$$ from his piggy bank. He wanted that game so bad and used his gift card from his birthday he has been saving and the money to get it (he never taps into that thing either, that is how we know he wanted it so bad). We made him count all of his money to make sure that he had enough! It was very cute to watch his reaction when he realized he did! He also does a very good job of letting Lola feel like she is playing too, by letting her switch out the characters! She loves it almost as much as him.")
-testCorpus <- Corpus(testCorpus)
-class(testCorpus)
+### TF-IDF
