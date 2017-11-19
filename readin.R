@@ -244,4 +244,12 @@ trigramDT <- data.table(
     stringsAsFactors = F
                         )
 
+head(trigramDT, 20)
+
+tstrsplit(trigramDT, "_", names = c("word1", "word2", "predict"))
+
+
+tstrsplit(x, ..., fill=NA, type.convert=FALSE, keep, names=FALSE)
+change to
+dt[, c("PX", "PY") := tstrsplit(PREFIX, "_", fixed=TRUE)]
 ### TF-IDF

@@ -118,3 +118,10 @@ head(mydfm[, 5:10])
 head(tfidf(mydfm)[, 5:10])
 docfreq(mydfm)[5:15]
 head(tf(mydfm)[, 5:10])
+
+txt <- "we_love_you"
+grep("^(.+)_.+", txt, value = TRUE)
+sub("^.+_", "", txt)
+sub("_.+?$", "", txt)
+strsplit(txt,"_")
+LETTERS[1:3]
