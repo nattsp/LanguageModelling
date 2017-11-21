@@ -244,8 +244,12 @@ trigramDT <- data.table(
     stringsAsFactors = F
                         )
 
-head(trigramDT, 20)
+babyDT <- head(trigramDT, 20)
 
+babyDT[, c("phrase", "predict") := tstrsplit(trigram, '_(?=[^_]*$)', perl=TRUE)]
+babyDT[, c("word1", "word2", "predict") := tstrsplit(trigram, "_", fixed=TRUE)]
+
+trigramDT[, c("word1", "word2", "predict") := tstrsplit(trigram, "_", fixed=TRUE)]
 tstrsplit(trigramDT, "_", names = c("word1", "word2", "predict"))
 
 
