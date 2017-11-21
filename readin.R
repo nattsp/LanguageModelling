@@ -246,8 +246,16 @@ trigramDT <- data.table(
 
 babyDT <- head(trigramDT, 20)
 
+#Split trigram into two
+## best one
 babyDT[, c("phrase", "predict") := tstrsplit(trigram, '_(?=[^_]*$)', perl=TRUE)]
+
+#Split trigram into one
 babyDT[, c("word1", "word2", "predict") := tstrsplit(trigram, "_", fixed=TRUE)]
+
+babyDT <- rbind(babyDT, list("love_you_too",20, "love_you", "too"))
+
+babyDT[,.(docfreq_phrase = sum(docfreq)),by=phrase]
 
 trigramDT[, c("word1", "word2", "predict") := tstrsplit(trigram, "_", fixed=TRUE)]
 tstrsplit(trigramDT, "_", names = c("word1", "word2", "predict"))
