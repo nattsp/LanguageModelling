@@ -251,11 +251,30 @@ babyDT <- head(trigramDT, 20)
 babyDT[, c("phrase", "predict") := tstrsplit(trigram, '_(?=[^_]*$)', perl=TRUE)]
 
 #Split trigram into one
-babyDT[, c("word1", "word2", "predict") := tstrsplit(trigram, "_", fixed=TRUE)]
+#babyDT[, c("word1", "word2", "predict") := tstrsplit(trigram, "_", fixed=TRUE)]
 
 babyDT <- rbind(babyDT, list("love_you_too",20, "love_you", "too"))
+setkey(babyDT, phrase)
 
-babyDT[,.(docfreq_phrase = sum(docfreq)),by=phrase]
+tempbabyDT <- babyDT[,.(docfreq_phrase = sum(docfreq)),by=phrase]
+setkey(tempbabyDT, phrase)
+
+# inner join to get phrase frequency
+# A[B, bb:=i.b, on='a'] is efficient join
+babyDT[tempbabyDT, phraseFreq :=i.docfreq_phrase, on = 'phrase']
+#DT[, V1 := round(exp(V1),2)]
+babyDT[, prop := docfreq/phraseFreq]
+setcolorder(babyDT, c("trigram", "phrase", "predict", "docfreq", "phraseFreq", "prop"))
+babyDT[, phrase := gsub("_", " ", phrase)]
+
+babyDT
+
+## predict based on input text
+txt <- "love you"
+babyDT[phrase == txt][order(-prop)]
+babyDT[phrase == txt][order(-prop)][, predict]
+
+
 
 trigramDT[, c("word1", "word2", "predict") := tstrsplit(trigram, "_", fixed=TRUE)]
 tstrsplit(trigramDT, "_", names = c("word1", "word2", "predict"))
