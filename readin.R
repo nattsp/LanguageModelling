@@ -236,7 +236,9 @@ topfeatures(trigramTrain, 1000)  # top words
 featnames(trigramTrain)[1:20]
 docfreq(trigramTrain)[1:20]
 summary(trigramTrain)
+trigramTrain[1:5, 1:5]
 
+## Really important conversion
 trigramDT <- data.table(
     trigram = featnames(trigramTrain), 
     docfreq = docfreq(trigramTrain),
@@ -244,7 +246,18 @@ trigramDT <- data.table(
     stringsAsFactors = F
                         )
 
+set.seed(2017)
+babyTri <- dfm_sample(trigramTrain, size = 30, margin = "documents")
+# remove the many features with a zero count after the sample
+babyTri <- dfm_trim(babyTri, min_count = 1, min_docfreq = 1)
+
+babyTri[1:5, 1:5]
+
+
 babyDT <- head(trigramDT, 20)
+
+babyDT <- head(trigram)
+dfm_select(babyDT, "fort", selection = "keep")
 
 #Split trigram into two
 ## best one
@@ -269,10 +282,14 @@ babyDT[, phrase := gsub("_", " ", phrase)]
 
 babyDT
 
+save(babyDT, file = "../../Data/babyDT.RData")
+load(file = "../../Data/babyDT.RData")
+
 ## predict based on input text
 txt <- "love you"
 babyDT[phrase == txt][order(-prop)]
 babyDT[phrase == txt][order(-prop)][, predict]
+babyDT[phrase == txt][order(-prop)][, .(predict)]
 
 
 
