@@ -6,6 +6,43 @@ library(stringr)
 library(dplyr)
 library(data.table)
 
+## Define some functions
+
+cleanFeatures <- function(x_dfm){
+    temp <- dfm_select(
+        x_dfm
+        , pattern = "^.*â.*"
+        , selection = "keep"
+        , valuetype = "regex"
+    )
+    
+    temp <- dfm_select(
+        x_dfm
+        , pattern = "^.*[0-9].*\\b"
+        , selection = c("keep")
+        , valuetype = c("regex")
+    )
+    
+    temp <- dfm_select(
+        x_dfm
+        , pattern = "^.*[^a-z'.\\_àèìòùáéíóúâêîôûãñõäëïöüåæœçðø¿¡ß-].*\\b"
+        , selection = c("keep")
+        , valuetype = c("regex")
+    )
+    return(temp)
+}
+
+
+splitNGram <- function(x_DT){
+    # A Data.Table will be updated globally
+    # Not locally to the function as you would expect from a DataFrame
+    x_DT[, c("phrase", "predict") := tstrsplit(ngram, '_(?=[^_]*$)', perl=TRUE)]
+    setcolorder(x_DT,
+                c("ngram","phrase","predict","docfreq"))
+    return()
+}
+
+
 
 con <- file("..\\..\\Data\\Coursera-SwiftKey\\final\\en_US\\en_US.blogs.txt", "rb")
 con2 <- file("..\\..\\Data\\Coursera-SwiftKey\\final\\en_US\\en_US.news.txt", "rb")
@@ -238,13 +275,79 @@ docfreq(trigramTrain)[1:20]
 summary(trigramTrain)
 trigramTrain[1:5, 1:5]
 
+### Clean Ngrams
+
+trigramTrain <- dfm_select(
+    trigramTrain
+    , pattern = "^.*â.*"
+    , selection = "remove"
+    , valuetype = "regex"
+)
+
+trigramTrain <- dfm_select(
+    trigramTrain
+    , pattern = "^.*â.*"
+    , selection = "remove"
+    , valuetype = "regex"
+)
+
+trigramTrain <- dfm_select(
+    trigramTrain
+    , pattern = "^.*[0-9].*\\b"
+    , selection = "remove"
+    , valuetype = "regex"
+)
+
+trigramTrain <- dfm_select(
+    trigramTrain
+    , pattern = "^.*[^a-z'.\\_àèìòùáéíóúâêîôûãñõäëïöüåæœçðø¿¡ß-].*\\b"
+    , selection = "remove"
+    , valuetype = "regex"
+)
+
+## Testing cleaning
+
+tempTrigram <- dfm_select(
+    trigramTrain
+    , pattern = "^.*â.*"
+    , selection = "keep"
+    , valuetype = "regex"
+)
+
+tempTrigram <- dfm_select(
+    trigramTrain
+    , pattern = "^.*[0-9].*\\b"
+    , selection = c("keep")
+    , valuetype = c("regex")
+)
+
+tempTrigram <- dfm_select(
+    trigramTrain
+    , pattern = "^.*[^a-z'.\\_àèìòùáéíóúâêîôûãñõäëïöüåæœçðø¿¡ß-].*\\b"
+    , selection = c("keep")
+    , valuetype = c("regex")
+)
+
+tempTrigram <- dfm_trim(tempTrigram, min_count = 1, min_docfreq = 1)
+tempTrigram <- dfm_trim(tempTrigram, min_docfreq = 1)
+topfeatures(tempTrigram, 100)
+tempTrigram
+
 ## Really important conversion
 trigramDT <- data.table(
-    trigram = featnames(trigramTrain), 
+    ngram = featnames(trigramTrain), 
     docfreq = docfreq(trigramTrain),
     keep.rownames = F, 
     stringsAsFactors = F
                         )
+
+trigramDT
+splitNGram(trigramDT)
+## Next time make ngrams without "_"
+trigramDT[, c("ngram", "phrase") := c(gsub("_", " ", ngram), gsub("_", " ", phrase))]
+
+save(trigramDT, file = "../../Data/trigramDT.RData")
+load(file = "../../Data/trigramDT.RData")
 
 set.seed(2017)
 babyTri <- dfm_sample(trigramTrain, size = 30, margin = "documents")
