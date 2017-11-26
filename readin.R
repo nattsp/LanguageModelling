@@ -17,28 +17,28 @@ cleanFeatures <- function(x_dfm){
     )
     
     temp <- dfm_select(
-        x_dfm
+        temp
         , pattern = "^.*â.*"
         , selection = "remove"
         , valuetype = "regex"
     )
     
     temp <- dfm_select(
-        x_dfm
+        temp
         , pattern = "^.*[0-9].*\\b"
         , selection = "remove"
         , valuetype = "regex"
     )
     
     temp <- dfm_select(
-        x_dfm
+        temp
         , pattern = "^.*[^a-z'. \\_àèìòùáéíóúâêîôûãñõäëïöüåæœçðø¿¡ß-].*\\b"
         , selection = "remove"
         , valuetype = "regex"
     )
     
     temp <- dfm_select(
-        x_dfm
+        temp
         , pattern = profanity
         , selection = "remove"
     )
@@ -50,10 +50,9 @@ cleanFeatures <- function(x_dfm){
 splitNGram <- function(x_DT){
     # A Data.Table will be updated globally
     # Not locally to the function as you would expect from a DataFrame
-    x_DT[, c("phrase", "predict") := tstrsplit(ngram, ' (?=[^ ]*$)', perl=TRUE)]
+    x_DT[, c("phrase", "predict") := tstrsplit(ngram, ' (?=[^ ]+$)', perl=TRUE)]
     setcolorder(x_DT,
                 c("ngram","phrase","predict","docfreq"))
-    return()
 }
 
 
@@ -68,6 +67,7 @@ close(con2)
 con <- file("../../Data/obsceneEnglish.txt", "rb")
 profanity <- read_lines(con)
 close(con)
+save(profanity, file = "..\\..\\Data\\profanity.RData")
 
 head(data_blogs)
 length(data_blogs)
@@ -427,6 +427,11 @@ rm(unigramTrain)
 
 splitNGram(trigramDT)
 splitNGram(bigramDT)
+#splitNGram not working
+trigramDT[, c("phrase", "predict") := tstrsplit(ngram, ' (?=[^ ]+$)', perl=TRUE)]
+setcolorder(trigramDT,
+            c("ngram","phrase","predict","docfreq"))
+
 ## Next time make ngrams without "_"
 trigramDT[, c("ngram", "phrase") := c(gsub("_", " ", ngram), gsub("_", " ", phrase))]
 
