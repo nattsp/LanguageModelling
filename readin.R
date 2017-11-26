@@ -271,6 +271,7 @@ trigramTrain <- dfm(
     , tolower = TRUE
     , remove_numbers = TRUE
     , remove_punct = TRUE
+    #, remove = stopwords("english")
     , stem = FALSE
     , ngrams = 3
     # add this to all ngrams:
@@ -282,22 +283,38 @@ bigramTrain <- dfm(
     , tolower = TRUE
     , remove_numbers = TRUE
     , remove_punct = TRUE
+    #, remove = stopwords("english")
     , stem = FALSE
     , ngrams = 2
     # add this to all ngrams:
     , concatenator = " "
     , verbose = TRUE)
 
+unigramTrain <- dfm(
+    TrainSentences
+    , tolower = TRUE
+    , remove_numbers = TRUE
+    , remove_punct = TRUE
+    #, remove = stopwords("english")
+    , stem = FALSE
+    , ngrams = 1
+    # add this to all ngrams:
+    , concatenator = " "
+    , verbose = TRUE)
+
 trigramTrain
 bigramTrain
+unigramTrain
 topfeatures(trigramTrain, 1000)  # top words
 topfeatures(bigramTrain, 200)  # top words
+topfeatures(unigramTrain, 100)
 featnames(trigramTrain)[1:20]
 docfreq(trigramTrain)[1:20]
 summary(trigramTrain)
 summary(bigramTrain)
 trigramTrain[1:5, 1:5]
 bigramTrain[1:5, 1:5]
+unigramTrain[1:5, 1:5]
 
 ### Clean Ngrams
 
@@ -367,6 +384,7 @@ rm(tempTrigram)
 
 # Function to bring together all the cleaning steps
 bigramTrain <- cleanFeatures(bigramTrain)
+unigramTrain <- cleanFeatures(unigramTrain)
 
 ## Really important conversion
 trigramDT <- data.table(
@@ -381,13 +399,23 @@ bigramDT <- data.table(
     keep.rownames = F, 
     stringsAsFactors = F
 )
+unigramDT <- data.table(
+    ngram = featnames(unigramTrain), 
+    docfreq = docfreq(unigramTrain),
+    keep.rownames = F, 
+    stringsAsFactors = F
+)
+
+trigramDT
+bigramDT
+unigramDT
 
 # ngrams take up a lot of memory
 rm(trigramTrain)
 rm(bigramTrain)
+rm(unigramTrain)
 
-trigramDT
-bigramDT
+
 
 splitNGram(trigramDT)
 splitNGram(bigramDT)
@@ -396,8 +424,12 @@ trigramDT[, c("ngram", "phrase") := c(gsub("_", " ", ngram), gsub("_", " ", phra
 
 save(trigramDT, file = "../../Data/trigramDT.RData")
 save(bigramDT, file = "../../Data/bigramDT.RData")
+save(unigramDT, file = "../../Data/unigramDT.RData")
 load(file = "../../Data/trigramDT.RData")
 load(file = "../../Data/bigramDT.RData")
+
+
+unigramDT[ngram == "love"]
 
 set.seed(2017)
 babyTri <- dfm_sample(trigramTrain, size = 30, margin = "documents")
