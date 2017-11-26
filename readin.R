@@ -12,22 +12,29 @@ cleanFeatures <- function(x_dfm){
     temp <- dfm_select(
         x_dfm
         , pattern = "^.*â.*"
-        , selection = "keep"
+        , selection = "remove"
+        , valuetype = "regex"
+    )
+    
+    temp <- dfm_select(
+        x_dfm
+        , pattern = "^.*â.*"
+        , selection = "remove"
         , valuetype = "regex"
     )
     
     temp <- dfm_select(
         x_dfm
         , pattern = "^.*[0-9].*\\b"
-        , selection = c("keep")
-        , valuetype = c("regex")
+        , selection = "remove"
+        , valuetype = "regex"
     )
     
     temp <- dfm_select(
         x_dfm
-        , pattern = "^.*[^a-z'.\\_àèìòùáéíóúâêîôûãñõäëïöüåæœçðø¿¡ß-].*\\b"
-        , selection = c("keep")
-        , valuetype = c("regex")
+        , pattern = "^.*[^a-z'. \\_àèìòùáéíóúâêîôûãñõäëïöüåæœçðø¿¡ß-].*\\b"
+        , selection = "remove"
+        , valuetype = "regex"
     )
     return(temp)
 }
@@ -36,7 +43,7 @@ cleanFeatures <- function(x_dfm){
 splitNGram <- function(x_DT){
     # A Data.Table will be updated globally
     # Not locally to the function as you would expect from a DataFrame
-    x_DT[, c("phrase", "predict") := tstrsplit(ngram, '_(?=[^_]*$)', perl=TRUE)]
+    x_DT[, c("phrase", "predict") := tstrsplit(ngram, ' (?=[^ ]*$)', perl=TRUE)]
     setcolorder(x_DT,
                 c("ngram","phrase","predict","docfreq"))
     return()
@@ -266,14 +273,31 @@ trigramTrain <- dfm(
     , remove_punct = TRUE
     , stem = FALSE
     , ngrams = 3
+    # add this to all ngrams:
+    #, concatenator = " "
+    , verbose = TRUE)
+
+bigramTrain <- dfm(
+    TrainSentences
+    , tolower = TRUE
+    , remove_numbers = TRUE
+    , remove_punct = TRUE
+    , stem = FALSE
+    , ngrams = 2
+    # add this to all ngrams:
+    , concatenator = " "
     , verbose = TRUE)
 
 trigramTrain
+bigramTrain
 topfeatures(trigramTrain, 1000)  # top words
+topfeatures(bigramTrain, 200)  # top words
 featnames(trigramTrain)[1:20]
 docfreq(trigramTrain)[1:20]
 summary(trigramTrain)
+summary(bigramTrain)
 trigramTrain[1:5, 1:5]
+bigramTrain[1:5, 1:5]
 
 ### Clean Ngrams
 
@@ -328,10 +352,21 @@ tempTrigram <- dfm_select(
     , valuetype = c("regex")
 )
 
+tempTrigram <- dfm_select(
+    bigramTrain
+    , pattern = "^.*[^a-z'. \\_àèìòùáéíóúâêîôûãñõäëïöüåæœçðø¿¡ß-].*\\b"
+    , selection = c("keep")
+    , valuetype = c("regex")
+)
+
 tempTrigram <- dfm_trim(tempTrigram, min_count = 1, min_docfreq = 1)
 tempTrigram <- dfm_trim(tempTrigram, min_docfreq = 1)
 topfeatures(tempTrigram, 100)
 tempTrigram
+rm(tempTrigram)
+
+# Function to bring together all the cleaning steps
+bigramTrain <- cleanFeatures(bigramTrain)
 
 ## Really important conversion
 trigramDT <- data.table(
@@ -340,14 +375,29 @@ trigramDT <- data.table(
     keep.rownames = F, 
     stringsAsFactors = F
                         )
+bigramDT <- data.table(
+    ngram = featnames(bigramTrain), 
+    docfreq = docfreq(bigramTrain),
+    keep.rownames = F, 
+    stringsAsFactors = F
+)
+
+# ngrams take up a lot of memory
+rm(trigramTrain)
+rm(bigramTrain)
 
 trigramDT
+bigramDT
+
 splitNGram(trigramDT)
+splitNGram(bigramDT)
 ## Next time make ngrams without "_"
 trigramDT[, c("ngram", "phrase") := c(gsub("_", " ", ngram), gsub("_", " ", phrase))]
 
 save(trigramDT, file = "../../Data/trigramDT.RData")
+save(bigramDT, file = "../../Data/bigramDT.RData")
 load(file = "../../Data/trigramDT.RData")
+load(file = "../../Data/bigramDT.RData")
 
 set.seed(2017)
 babyTri <- dfm_sample(trigramTrain, size = 30, margin = "documents")
