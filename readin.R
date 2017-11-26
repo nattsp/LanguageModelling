@@ -36,6 +36,13 @@ cleanFeatures <- function(x_dfm){
         , selection = "remove"
         , valuetype = "regex"
     )
+    
+    temp <- dfm_select(
+        x_dfm
+        , pattern = profanity
+        , selection = "remove"
+    )
+    
     return(temp)
 }
 
@@ -57,6 +64,10 @@ data_blogs <- read_lines(con)
 data_news <- read_lines(con2)
 close(con)
 close(con2)
+
+con <- file("../../Data/obsceneEnglish.txt", "rb")
+profanity <- read_lines(con)
+close(con)
 
 head(data_blogs)
 length(data_blogs)
@@ -271,7 +282,6 @@ trigramTrain <- dfm(
     , tolower = TRUE
     , remove_numbers = TRUE
     , remove_punct = TRUE
-    #, remove = stopwords("english")
     , stem = FALSE
     , ngrams = 3
     # add this to all ngrams:
@@ -283,7 +293,6 @@ bigramTrain <- dfm(
     , tolower = TRUE
     , remove_numbers = TRUE
     , remove_punct = TRUE
-    #, remove = stopwords("english")
     , stem = FALSE
     , ngrams = 2
     # add this to all ngrams:
@@ -295,7 +304,6 @@ unigramTrain <- dfm(
     , tolower = TRUE
     , remove_numbers = TRUE
     , remove_punct = TRUE
-    #, remove = stopwords("english")
     , stem = FALSE
     , ngrams = 1
     # add this to all ngrams:
@@ -427,6 +435,7 @@ save(bigramDT, file = "../../Data/bigramDT.RData")
 save(unigramDT, file = "../../Data/unigramDT.RData")
 load(file = "../../Data/trigramDT.RData")
 load(file = "../../Data/bigramDT.RData")
+load(file = "../../Data/unigramDT.RData")
 
 
 unigramDT[ngram == "love"]
