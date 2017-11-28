@@ -352,7 +352,8 @@ unigramTrain <- dfm(
     , remove_punct = TRUE
     , stem = FALSE
     , ngrams = 1
-    # add this to all ngrams:
+    , remove_twitter = TRUE
+    , remove_url = TRUE
     , concatenator = " "
     , verbose = TRUE)
 
