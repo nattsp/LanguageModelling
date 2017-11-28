@@ -328,8 +328,9 @@ trigramTrain <- dfm(
     , remove_punct = TRUE
     , stem = FALSE
     , ngrams = 3
-    # add this to all ngrams:
-    #, concatenator = " "
+    , remove_twitter = TRUE
+    , remove_url = TRUE
+    , concatenator = " "
     , verbose = TRUE)
 
 bigramTrain <- dfm(
@@ -339,7 +340,8 @@ bigramTrain <- dfm(
     , remove_punct = TRUE
     , stem = FALSE
     , ngrams = 2
-    # add this to all ngrams:
+    , remove_twitter = TRUE
+    , remove_url = TRUE
     , concatenator = " "
     , verbose = TRUE)
 
@@ -373,6 +375,8 @@ unigramTrain[1:5, 1:5]
 ## quingramTrain for instance is 4.4 Gb
 quingramTrain <- dfm_trim(quingramTrain, min_docfreq = 4)
 quadgramTrain <- dfm_trim(quadgramTrain, min_docfreq = 4)
+trigramTrain <- dfm_trim(trigramTrain, min_docfreq = 4)
+bigramTrain <- dfm_trim(bigramTrain, min_docfreq = 4)
 
 ### Clean Ngrams
 
@@ -443,6 +447,7 @@ rm(tempTrigram)
 # Function to bring together all the cleaning steps
 quingramTrain <- cleanFeatures(quingramTrain)
 quadgramTrain <- cleanFeatures(quadgramTrain)
+trigramTrain <- cleanFeatures(trigramTrain)
 bigramTrain <- cleanFeatures(bigramTrain)
 unigramTrain <- cleanFeatures(unigramTrain)
 
