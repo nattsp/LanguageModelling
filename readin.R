@@ -55,7 +55,7 @@ splitNGram <- function(x_DT){
                 c("ngram","phrase","predict","docfreq"))
 }
 
-en_US.twitter.txt
+
 
 con <- file("..\\..\\Data\\Coursera-SwiftKey\\final\\en_US\\en_US.blogs.txt", "rb")
 con2 <- file("..\\..\\Data\\Coursera-SwiftKey\\final\\en_US\\en_US.news.txt", "rb")
@@ -309,6 +309,18 @@ quingramTrain <- dfm(
     , concatenator = " "
     , verbose = TRUE)
 
+quadgramTrain <- dfm(
+    TrainSentences
+    , tolower = TRUE
+    , remove_numbers = TRUE
+    , remove_punct = TRUE
+    , stem = FALSE
+    , ngrams = 4
+    , remove_twitter = TRUE
+    , remove_url = TRUE
+    , concatenator = " "
+    , verbose = TRUE)
+
 trigramTrain <- dfm(
     TrainSentences
     , tolower = TRUE
@@ -360,6 +372,7 @@ unigramTrain[1:5, 1:5]
 ## Trim 
 ## quingramTrain for instance is 4.4 Gb
 quingramTrain <- dfm_trim(quingramTrain, min_docfreq = 4)
+quadgramTrain <- dfm_trim(quadgramTrain, min_docfreq = 4)
 
 ### Clean Ngrams
 
@@ -429,6 +442,7 @@ rm(tempTrigram)
 
 # Function to bring together all the cleaning steps
 quingramTrain <- cleanFeatures(quingramTrain)
+quadgramTrain <- cleanFeatures(quadgramTrain)
 bigramTrain <- cleanFeatures(bigramTrain)
 unigramTrain <- cleanFeatures(unigramTrain)
 
@@ -436,6 +450,12 @@ unigramTrain <- cleanFeatures(unigramTrain)
 quingramDT <- data.table(
     ngram = featnames(quingramTrain), 
     docfreq = docfreq(quingramTrain),
+    keep.rownames = F, 
+    stringsAsFactors = F
+)
+quadgramDT <- data.table(
+    ngram = featnames(quadgramTrain), 
+    docfreq = docfreq(quadgramTrain),
     keep.rownames = F, 
     stringsAsFactors = F
 )
@@ -459,14 +479,17 @@ unigramDT <- data.table(
 )
 
 quingramDT
+quadgramDT
 trigramDT
 bigramDT
 unigramDT
 
 
 quingramDT[ngram %like% "beer"]
+quadgramDT[ngram %like% "a case of beer"]
 
 splitNGram(quingramDT)
+splitNGram(quadgramDT)
 splitNGram(trigramDT)
 splitNGram(bigramDT)
 #splitNGram not working
@@ -478,6 +501,7 @@ setcolorder(trigramDT,
 trigramDT[, c("ngram", "phrase") := c(gsub("_", " ", ngram), gsub("_", " ", phrase))]
 
 save(quingramDT, file = "../../Data/quingramDT.RData")
+save(quadgramDT, file = "../../Data/quadgramDT.RData")
 save(trigramDT, file = "../../Data/trigramDT.RData")
 save(bigramDT, file = "../../Data/bigramDT.RData")
 save(unigramDT, file = "../../Data/unigramDT.RData")
@@ -487,6 +511,7 @@ load(file = "../../Data/unigramDT.RData")
 
 # ngrams take up a lot of memory
 rm(quingramTrain)
+rm(quadgramTrain)
 rm(trigramTrain)
 rm(bigramTrain)
 rm(unigramTrain)
